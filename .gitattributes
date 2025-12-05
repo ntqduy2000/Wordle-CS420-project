@@ -1,0 +1,20 @@
+# Tự động xử lý dòng kết thúc (Line Endings) cho tất cả text file
+* text=auto
+
+# Cố định các file code Python luôn dùng chuẩn LF (chuẩn quốc tế)
+*.py text eol=lf
+*.js text eol=lf
+*.html text eol=lf
+*.css text eol=lf
+*.md text eol=lf
+*.txt text eol=lf
+
+# File nhị phân (Binary)
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.ttf binary
+*.woff binary
