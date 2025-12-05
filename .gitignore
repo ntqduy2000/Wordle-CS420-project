@@ -205,3 +205,25 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# --- BỔ SUNG CHO TEAM WINDOWS & VS CODE ---
+
+# 1. File rác hệ điều hành (Windows hay sinh ra cái này)
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# 2. Cấu hình Editor (VS Code)
+# Trong file mẫu dòng 121 đang comment, bạn nên bỏ comment hoặc thêm mới
+.vscode/
+*.code-workspace
+
+# 3. File kết quả thực nghiệm (Benchmark)
+# Nếu bạn không muốn mỗi lần chạy test lại phải commit file csv mới
+# (Trừ khi bạn muốn lưu kết quả để nộp báo cáo thì KHÔNG thêm dòng này)
+benchmark_results.csv
+benchmark_results.xlsx
+
+# 4. Đảm bảo thư mục ảo không bị commit
+venv/
+env/
