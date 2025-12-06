@@ -12,14 +12,14 @@ from game_logic import ROWS, COLS, WORD_LIST, get_pattern, filter_words, \
 
 from solvers import bfs_solver, dfs_solver, ucs_solver, astar_solver
 
-CELL_SIZE = 74
+CELL_SIZE = 55
 REVEAL_DELAY_MS = 200
 
 class WordleGame:
     def __init__(self, root: tk.Tk):
         self.root = root
         self.root.title("Wordle AI Solver - Group Project")
-        self.root.geometry("700x950")
+        self.root.geometry("600x750")
         self.root.configure(bg=BG)
         self.target_word: str = ""
         self.current_guess_num: int = 0
@@ -53,7 +53,7 @@ class WordleGame:
                                       highlightbackground=EMPTY_BORDER, highlightthickness=2)
                 cell_frame.grid(row=row, column=col, padx=5, pady=5)
                 cell_frame.pack_propagate(False)
-                lbl = tk.Label(cell_frame, text="", font=("Helvetica", 32, "bold"), bg=EMPTY_BG, fg=EMPTY_TEXT)
+                lbl = tk.Label(cell_frame, text="", font=("Helvetica", 24, "bold"), bg=EMPTY_BG, fg=EMPTY_TEXT)
                 lbl.pack(expand=True, fill="both")
                 row_cells.append((cell_frame, lbl))
             self.cells.append(row_cells)
