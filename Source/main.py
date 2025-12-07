@@ -19,8 +19,17 @@ class WordleGame:
     def __init__(self, root: tk.Tk):
         self.root = root
         self.root.title("Wordle AI Solver - Group Project")
-        self.root.geometry("600x750")
+        self.root.geometry("600x850")
         self.root.configure(bg=BG)
+        
+        # Center window on screen
+        self.root.update_idletasks()
+        width = 600
+        height = 850
+        x = (self.root.winfo_screenwidth() // 2) - (width // 2)
+        y = (self.root.winfo_screenheight() // 2) - (height // 2)
+        self.root.geometry(f'{width}x{height}+{x}+{y}')
+        
         self.target_word: str = ""
         self.current_guess_num: int = 0
         self.current_guess_str: str = ""
@@ -33,6 +42,9 @@ class WordleGame:
 
         self.setup_ui()
         self.start_new_game()
+        
+        # Bind physical keyboard
+        self.root.bind("<Key>", self.on_key_press)
 
     def setup_ui(self):
         title_label = tk.Label(self.root, text="WORDLE AI", font=("Helvetica", 40, "bold"), bg=BG, fg="white")
@@ -97,15 +109,31 @@ class WordleGame:
             row_frame.pack()
             for char in row_keys:
                 btn = tk.Button(row_frame, text=char, font=("Helvetica", 10, "bold"), 
-                                width=4, height=2, bg=KEY_BG, fg="white")
+                                width=4, height=2, bg=KEY_BG, fg="white",
+                                command=lambda c=char: self.handle_char(c))
                 btn.pack(side="left", padx=2, pady=2)
                 self.key_buttons[char] = btn
+        
+        # Add ENTER and BACKSPACE buttons
+        bottom_frame = tk.Frame(kb_frame, bg=BG)
+        bottom_frame.pack(pady=5)
+        
+        enter_btn = tk.Button(bottom_frame, text="ENTER", font=("Helvetica", 10, "bold"),
+                             width=8, height=2, bg=KEY_BG, fg="white",
+                             command=self.handle_enter)
+        enter_btn.pack(side="left", padx=2)
+        
+        back_btn = tk.Button(bottom_frame, text="←", font=("Helvetica", 10, "bold"),
+                            width=8, height=2, bg=KEY_BG, fg="white",
+                            command=self.handle_backspace)
+        back_btn.pack(side="left", padx=2)
 
     def start_new_game(self):
         self.target_word = random.choice(WORD_LIST)
         print(f"DEBUG: Secret Word is {self.target_word}")
         
         self.current_guess_num = 0
+        self.current_guess_str = ""
         self.game_over = False
         self.revealing = False
         self.message_label.config(text="")
@@ -120,6 +148,130 @@ class WordleGame:
         for btn in self.key_buttons.values():
             btn.config(bg=KEY_BG)
 
+    def on_key_press(self, event):
+        """Handle physical keyboard input"""
+        if self.game_over or self.revealing:
+            return
+        
+        key = event.char.upper()
+        
+        if event.keysym == "Return":
+            self.handle_enter()
+        elif event.keysym == "BackSpace":
+            self.handle_backspace()
+        elif key.isalpha() and len(key) == 1:
+            self.handle_char(key)
+    
+    def handle_char(self, char):
+        """Add character to current guess"""
+        if self.game_over or self.revealing:
+            return
+        
+        if len(self.current_guess_str) < COLS:
+            self.current_guess_str += char
+            self.update_current_row()
+    
+    def handle_backspace(self):
+        """Remove last character from current guess"""
+        if self.game_over or self.revealing:
+            return
+        
+        if len(self.current_guess_str) > 0:
+            self.current_guess_str = self.current_guess_str[:-1]
+            self.update_current_row()
+    
+    def handle_enter(self):
+        """Submit current guess"""
+        if self.game_over or self.revealing:
+            return
+        
+        if len(self.current_guess_str) != COLS:
+            self.message_label.config(text="Word must be 5 letters!", fg="#ff6b6b")
+            return
+        
+        guess_lower = self.current_guess_str.lower()
+        if guess_lower not in WORD_LIST:
+            self.message_label.config(text="Not in word list!", fg="#ff6b6b")
+            return
+        
+        # Valid guess - reveal it
+        self.message_label.config(text="")
+        self.reveal_current_guess()
+    
+    def update_current_row(self):
+        """Update display of current row being typed"""
+        row = self.current_guess_num
+        if row >= ROWS:
+            return
+        
+        for col in range(COLS):
+            frame, lbl = self.cells[row][col]
+            if col < len(self.current_guess_str):
+                lbl.config(text=self.current_guess_str[col], bg=EMPTY_BG, fg=COLOR_TEXT_FILLED)
+                frame.config(highlightbackground="#565758")
+            else:
+                lbl.config(text="", bg=EMPTY_BG, fg=EMPTY_TEXT)
+                frame.config(highlightbackground=EMPTY_BORDER)
+    
+    def reveal_current_guess(self):
+        """Reveal the current guess with color animation"""
+        row = self.current_guess_num
+        if row >= ROWS:
+            return
+        
+        self.revealing = True
+        guess = self.current_guess_str.lower()
+        pattern = get_pattern(guess, self.target_word)
+        
+        # Animate color reveal
+        for col in range(COLS):
+            color = COLOR_ABSENT
+            if pattern[col] == 2:
+                color = COLOR_CORRECT
+            elif pattern[col] == 1:
+                color = COLOR_PRESENT
+            
+            delay = col * REVEAL_DELAY_MS
+            self.root.after(delay, lambda c=col, clr=color: self._reveal_cell(row, c, clr))
+        
+        # After all cells revealed, check win/loss
+        self.root.after(COLS * REVEAL_DELAY_MS + 100, lambda: self._finish_guess(pattern))
+    
+    def _reveal_cell(self, row, col, color):
+        """Reveal a single cell with color"""
+        frame, lbl = self.cells[row][col]
+        lbl.config(bg=color, fg=COLOR_TEXT_FILLED)
+        frame.config(bg=color, highlightbackground=color)
+        
+        # Update keyboard
+        char = self.current_guess_str[col]
+        if char in self.key_buttons:
+            current_color = self.key_buttons[char].cget("bg")
+            # Only update if new color is "better" (green > yellow > gray)
+            if color == COLOR_CORRECT or (color == COLOR_PRESENT and current_color != COLOR_CORRECT):
+                self.key_buttons[char].config(bg=color)
+            elif color == COLOR_ABSENT and current_color == KEY_BG:
+                self.key_buttons[char].config(bg=color)
+    
+    def _finish_guess(self, pattern):
+        """Finish the current guess and check game state"""
+        self.revealing = False
+        
+        # Check win
+        if pattern == (2, 2, 2, 2, 2):
+            self.message_label.config(text=f"🎉 You won! The word was {self.target_word.upper()}!", fg=COLOR_CORRECT)
+            self.game_over = True
+            return
+        
+        # Move to next row
+        self.current_guess_num += 1
+        self.current_guess_str = ""
+        
+        # Check loss
+        if self.current_guess_num >= ROWS:
+            self.message_label.config(text=f"Game Over! The word was {self.target_word.upper()}", fg="#ff6b6b")
+            self.game_over = True
+    
     def run_auto_solve(self):
         if self.game_over or self.revealing: return
         
