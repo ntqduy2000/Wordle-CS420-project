@@ -1,15 +1,32 @@
 # Wordle-CS420-project
-18125048 Nguyễn Trần Quang Duy
-22125064 Lê Hữu Nghĩa
-20125122 Ngô Minh Tuấn
-21125174 Đỗ Nhân Minh
+## 👥 Team Members
 
-Setup:
-python -m venv venv
+| ID | Name |
+|---|---|
+| 18125048 | Nguyễn Trần Quang Duy |
+| 22125064 | Lê Hữu Nghĩa |
+| 20125122 | Ngô Minh Tuấn |
+| 21125174 | Đỗ Nhân Minh |
 
-.\venv\Scripts\activate
+## 🚀 Installation
 
-pip install -r Source/requirements.txt
+1. Create a virtual environment:
+    ```bash
+    python -m venv venv
+    ```
 
-Run:
+2. Activate the virtual environment:
+    ```bash
+    .\venv\Scripts\activate
+    ```
+
+3. Install dependencies:
+    ```bash
+    pip install -r Source/requirements.txt
+    ```
+
+## 🚀 Running
+
+```bash
 python Source/main.py
+```
